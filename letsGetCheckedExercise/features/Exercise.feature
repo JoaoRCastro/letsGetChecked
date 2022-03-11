@@ -1,3 +1,4 @@
+@All
 Feature: Search for Dublin in Google Maps website
 
   Scenario: Open Google Maps website
