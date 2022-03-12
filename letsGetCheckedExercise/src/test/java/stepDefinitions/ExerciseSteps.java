@@ -24,11 +24,14 @@ public class ExerciseSteps {
     @When("I visit \"([^\"]*)\"")
     public void visitGoogleMaps(String website) {
         driver.get(website);
+
+        WebElement consentAcceptBtn = driver.findElement(By.cssSelector("button[aria-label]"));
+        consentAcceptBtn.click();
     }
 
     @Then("The page \"([^\"]*)\" must be the current page")
     public void validateCurrentPage(String website) {
-        Assert.assertEquals(driver.getCurrentUrl(), website);
+        Assert.assertTrue(driver.getCurrentUrl().contains(website));
     }
 
     @Given("Type \"([^\"]*)\" in the search element")
