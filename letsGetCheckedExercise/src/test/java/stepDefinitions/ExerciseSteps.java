@@ -1,77 +1,73 @@
 package stepDefinitions;
 
+import io.cucumber.java.AfterAll;
+import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.*;
 import org.junit.Assert;
-import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import pageObjects.GoogleConsentPage;
+import pageObjects.GoogleMapsPage;
 
-import java.util.List;
+import java.time.Duration;
 
 public class ExerciseSteps {
-    WebDriver driver;
+    private static WebDriver driver;
+    private static GoogleConsentPage googleConsentPage;
+    private static GoogleMapsPage googleMapsPage;
 
-    @Given("I open Google Chrome")
-    public void openGoogleChrome() {
+    @BeforeAll
+    public static void beforeAll() {
 //        System.setProperty("webdriver.gecko.driver", "geckodriver.exe");
 //        driver = new FirefoxDriver();
         System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
         driver = new ChromeDriver();
+
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+        googleConsentPage = new GoogleConsentPage(driver);
+        googleMapsPage = new GoogleMapsPage(driver);
     }
 
-    @When("I visit \"([^\"]*)\"")
+    @Given("I visit {string}")
     public void visitGoogleMaps(String website) {
         driver.get(website);
 
-        WebElement consentAcceptBtn = driver.findElement(By.cssSelector("button[aria-label]"));
-        consentAcceptBtn.click();
+        googleConsentPage.acceptBtn().click();
     }
 
-    @Then("The page \"([^\"]*)\" must be the current page")
+    @Then("The page {string} must be the current page")
     public void validateCurrentPage(String website) {
         Assert.assertTrue(driver.getCurrentUrl().contains(website));
     }
 
-    @Given("Type \"([^\"]*)\" in the search element")
+    @Given("Search {string} in the search element")
     public void typeCityInSearch(String city) {
-        WebElement searchInput = driver.findElement(By.id("searchboxinput"));
-
-        searchInput.sendKeys(city);
+        googleMapsPage.searchInput().sendKeys(city + Keys.RETURN);
     }
 
-    @And("Select the first element in the suggestions")
-    public void selectFirstSuggestion() {
-        List<WebElement> suggestions = driver.findElements(By.className("sbsb_c"));
-
-        suggestions.get(0).click();
-    }
-
-    @Then("The left panel headline text must be \"([^\"]*)\"")
+    @Then("The left panel headline text must be {string}")
     public void validateHeadlineText(String city) {
-        WebElement leftHeadline = driver.findElement(By.cssSelector("h1 > span:nth-child(1)"));
-
-        assert leftHeadline.getText().equals(city);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.textToBePresentInElement(googleMapsPage.leftHeadLine(), city));
     }
 
     @Given("Click the directions icon")
     public void clickDirectionsIcon() {
-        List<WebElement> actionBtns = driver.findElements(By.cssSelector("button[aria-label][data-value]"));
-        WebElement directionBtn = actionBtns.get(0);
-
-        directionBtn.click();
+        googleMapsPage.directionBtn().click();
     }
 
-    @Then("Destination must be \"([^\"]*)\"")
+    @Then("Destination must be {string}")
     public void validateDestination(String city) {
-        WebElement directionInput = driver.findElement(By.cssSelector("div#directions-searchbox-1 input"));
-
-        assert directionInput.getText().equals(city);
+        Assert.assertTrue(googleMapsPage.directionInput().getAttribute("aria-label").contains(city));
     }
 
-    @And("I close browser")
-    public void closeBrowser() {
+    @AfterAll
+    public static void afterAll() {
         driver.quit();
     }
 }
