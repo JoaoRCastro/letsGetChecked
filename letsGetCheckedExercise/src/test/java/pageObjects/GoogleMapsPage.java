@@ -15,12 +15,8 @@ public class GoogleMapsPage {
         return this.driver.findElement(By.id("searchboxinput"));
     }
 
-    public WebElement firstSuggestion() {
-        return this.driver.findElements(By.className("sbsb_c")).get(0);
-    }
-
     public WebElement leftHeadLine() {
-        return this.driver.findElement(By.cssSelector("h1 > span:nth-child(1)"));
+        return this.driver.findElement(By.cssSelector("#pane h1 span"));
     }
 
     public WebElement directionBtn() {

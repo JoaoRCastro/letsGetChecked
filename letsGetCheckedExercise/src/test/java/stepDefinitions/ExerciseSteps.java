@@ -1,68 +1,73 @@
 package stepDefinitions;
 
+import io.cucumber.java.AfterAll;
+import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.*;
 import org.junit.Assert;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import pageObjects.GoogleConsentPage;
 import pageObjects.GoogleMapsPage;
 
-public class ExerciseSteps {
-    private WebDriver driver;
-    private GoogleConsentPage googleConsentPage;
-    private GoogleMapsPage googleMapsPage;
+import java.time.Duration;
 
-    @Given("I open Google Chrome")
-    public void openGoogleChrome() {
+public class ExerciseSteps {
+    private static WebDriver driver;
+    private static GoogleConsentPage googleConsentPage;
+    private static GoogleMapsPage googleMapsPage;
+
+    @BeforeAll
+    public static void beforeAll() {
 //        System.setProperty("webdriver.gecko.driver", "geckodriver.exe");
 //        driver = new FirefoxDriver();
         System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
-        this.driver = new ChromeDriver();
+        driver = new ChromeDriver();
 
-        this.googleConsentPage = new GoogleConsentPage(this.driver);
-        this.googleMapsPage = new GoogleMapsPage(this.driver);
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+
+        googleConsentPage = new GoogleConsentPage(driver);
+        googleMapsPage = new GoogleMapsPage(driver);
     }
 
-    @When("I visit \"([^\"]*)\"")
+    @Given("I visit {string}")
     public void visitGoogleMaps(String website) {
-        this.driver.get(website);
+        driver.get(website);
 
-        this.googleConsentPage.acceptBtn().click();
+        googleConsentPage.acceptBtn().click();
     }
 
-    @Then("The page \"([^\"]*)\" must be the current page")
+    @Then("The page {string} must be the current page")
     public void validateCurrentPage(String website) {
-        Assert.assertTrue(this.driver.getCurrentUrl().contains(website));
+        Assert.assertTrue(driver.getCurrentUrl().contains(website));
     }
 
-    @Given("Type \"([^\"]*)\" in the search element")
+    @Given("Search {string} in the search element")
     public void typeCityInSearch(String city) {
-        this.googleMapsPage.searchInput().sendKeys(city);
+        googleMapsPage.searchInput().sendKeys(city + Keys.RETURN);
     }
 
-    @And("Select the first element in the suggestions")
-    public void selectFirstSuggestion() {
-        this.googleMapsPage.firstSuggestion().click();
-    }
-
-    @Then("The left panel headline text must be \"([^\"]*)\"")
+    @Then("The left panel headline text must be {string}")
     public void validateHeadlineText(String city) {
-        assert this.googleMapsPage.leftHeadLine().getText().equals(city);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.textToBePresentInElement(googleMapsPage.leftHeadLine(), city));
     }
 
     @Given("Click the directions icon")
     public void clickDirectionsIcon() {
-        this.googleMapsPage.directionBtn().click();
+        googleMapsPage.directionBtn().click();
     }
 
-    @Then("Destination must be \"([^\"]*)\"")
+    @Then("Destination must be {string}")
     public void validateDestination(String city) {
-        assert this.googleMapsPage.directionInput().getText().equals(city);
+        Assert.assertTrue(googleMapsPage.directionInput().getAttribute("aria-label").contains(city));
     }
 
-    @And("I close browser")
-    public void closeBrowser() {
+    @AfterAll
+    public static void afterAll() {
         driver.quit();
     }
 }
